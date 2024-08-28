@@ -1,60 +1,82 @@
-# NestJS Authentication and Authorization Starter Guide (With Postgres)
+# 🛡️ NestJS Authentication & Authorization Guide (With PostgreSQL) 🐘✨
 
-## Prerequisites
+Welcome to your ultimate starter guide for building robust authentication and authorization in a NestJS application with PostgreSQL. Let’s dive in! 🚀
 
-- Node.js
-- NestJS CLI
-- PostgreSQL
+## Prerequisites 📦
 
-## 1. Install Necessary Dependencies
+Before we get started, make sure you have the following installed:
 
-First, install NestJS CLI if you haven't already:
+- **Node.js** 🟩
+- **NestJS CLI** 🛠️
+- **PostgreSQL** 🐘
+
+---
+
+## 1️⃣ Install Necessary Dependencies
+
+Let’s kick things off by installing the required tools and dependencies.
+
+### 🌟 Step 1: Install NestJS CLI
+
+If you haven’t installed the NestJS CLI, do so with the following command:
 
 ```bash
 npm install -g @nestjs/cli
 ```
 
-Then, create a new NestJS project:
+### 🌟 Step 2: Create a New Project
+
+Create a fresh NestJS project:
 
 ```bash
 nest new my-nest-app
 ```
 
-Navigate to the project directory:
+Navigate into your project directory:
 
 ```bash
 cd my-nest-app
 ```
 
-Install required dependencies:
+### 🌟 Step 3: Add Required Packages
+
+Add the necessary dependencies:
 
 ```bash
 npm install @nestjs/typeorm typeorm pg @nestjs/jwt passport-jwt @nestjs/passport passport bcryptjs
 ```
 
-Install type definitions for TypeScript:
+Add type definitions for TypeScript:
 
 ```bash
 npm install @types/bcryptjs @types/passport-jwt
 ```
 
-## 2. Setting Up Environment Variables
+---
 
-Create a `.env` file at the root of your project with the following content:
+## 2️⃣ Set Up Environment Variables 🛠️
+
+Create a `.env` file in the root of your project to securely store your environment variables:
 
 ```env
-DATABASE_HOST=apo.liara.cloud
-DATABASE_PORT=31406
-DATABASE_USERNAME=root
-DATABASE_PASSWORD=A7uLGlW7mawdfWF9B3aNVYeC
-DATABASE_NAME=postgres
+DATABASE_HOST=your_db_host
+DATABASE_PORT=your_db_port
+DATABASE_USERNAME=your_db_username
+DATABASE_PASSWORD=your_db_password
+DATABASE_NAME=your_db_name
 JWT_SECRET=your_jwt_secret
 SESSION_SECRET=your_session_secret
 ```
 
-## 3. Main Application Bootstrap
+This file will store critical information like your database credentials and JWT secret.
 
-Update your `main.ts` file:
+---
+
+## 3️⃣ Main Application Bootstrap ⚡️
+
+Let’s configure the main application bootstrap file.
+
+Update your `main.ts` to look like this:
 
 ```typescript
 import { NestFactory } from '@nestjs/core';
@@ -67,9 +89,9 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const configService = app.get(ConfigService);
 
-  app.setGlobalPrefix('api/v1');
+  app.setGlobalPrefix('api/v1'); // 🌐 Set global API prefix
 
-  // Use session middleware
+  // 🛡️ Use session middleware
   app.use(
     session({
       secret: configService.get<string>('SESSION_SECRET'),
@@ -78,14 +100,18 @@ async function bootstrap() {
   app.use(passport.initialize());
   app.use(passport.session());
 
-  await app.listen(3000);
+  await app.listen(3000); // 🚀 Listen on port 3000
 }
 bootstrap();
 ```
 
-## 4. AppModule Configuration
+---
 
-Update `app.module.ts` to use environment variables for the database connection:
+## 4️⃣ AppModule Configuration 🔧
+
+Next, we configure our `AppModule` to establish a connection to PostgreSQL.
+
+Update your `app.module.ts`:
 
 ```typescript
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
@@ -101,9 +127,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({
-      isGlobal: true,
-    }),
+    ConfigModule.forRoot({ isGlobal: true }), // 🌍 Global environment configuration
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -115,7 +139,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
         password: configService.get<string>('DATABASE_PASSWORD'),
         database: configService.get<string>('DATABASE_NAME'),
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
-        synchronize: true,
+        synchronize: true, // ⚠️ Sync entities (be careful in production!)
       }),
     }),
     TypeOrmModule.forFeature([Users]),
@@ -128,16 +152,20 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(LoggerMiddleware).forRoutes('*');
+    consumer.apply(LoggerMiddleware).forRoutes('*'); // 📝 Apply logger middleware
   }
 }
 ```
 
-## 5. User Management
+---
 
-### Create the User Entity
+## 5️⃣ User Management 👥
 
-Create `user.entity.ts` in the `src/entities` directory:
+Let’s set up user management with a user entity, DTOs, and controllers.
+
+### 🧩 Step 1: Create the User Entity
+
+In the `src/entities` directory, create `user.entity.ts`:
 
 ```typescript
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
@@ -159,15 +187,14 @@ export default class Users {
   @Column({ nullable: true })
   age: number;
 
-  // select false means that it never gets back from the SELECT command because of security issues
   @Column({ select: false, nullable: false })
-  password: string;
+  password: string; // 🔐 Securely store passwords
 }
 ```
 
-### Create DTOs
+### 🧩 Step 2: Create DTOs
 
-Create `create-user.dto.ts` in the `src/users/dto` directory:
+**Create `create-user.dto.ts` in the `src/users/dto` directory:**
 
 ```typescript
 export class CreateUserDto {
@@ -179,7 +206,7 @@ export class CreateUserDto {
 }
 ```
 
-Create `update-user.dto.ts` in the `src/users/dto` directory:
+**Create `update-user.dto.ts` in the `src/users/dto` directory:**
 
 ```typescript
 import { PartialType } from '@nestjs/mapped-types';
@@ -188,9 +215,9 @@ import { CreateUserDto } from './create-user.dto';
 export class UpdateUserDto extends PartialType(CreateUserDto) {}
 ```
 
-### Create the Users Controller
+### 🧩 Step 3: Create the Users Controller
 
-Create `users.controller.ts` in the `src/users` directory:
+In the `src/users` directory, create `users.controller.ts`:
 
 ```typescript
 import {
@@ -206,7 +233,7 @@ import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 
-@Controller('users')
+@Controller('users') // 👥 Manage users via this controller
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
@@ -237,9 +264,9 @@ export class UsersController {
 }
 ```
 
-### Create the Users Service
+### 🧩 Step 4: Create the Users Service
 
-Create `users.service.ts` in the `src/users` directory:
+In the `src/users` directory, create `users.service.ts`:
 
 ```typescript
 import {
@@ -265,30 +292,30 @@ export class UsersService {
       where: { email: createUserDto.email },
     });
     if (prevUser.length > 0) {
-      throw new BadRequestException('User already exists');
+      throw new BadRequestException('User already exists'); // ❌ Prevent duplicate users
     }
     await this.userRepository.insert(createUserDto);
     const { password, ...user } = createUserDto;
     return {
-      message: 'user created successfully',
+      message: 'user created successfully', // ✅ Confirmation message
       data: user,
     };
   }
 
   findAll() {
-    return this.userRepository.find();
+    return this.userRepository.find(); // 📜 Return all users
   }
 
   async findOne(id: number) {
     const user = await this.userRepository.findOne({ where: { id } });
-    if (!user) throw new NotFoundException(`User with id #${id} not found!`);
+    if (!user) throw new NotFoundException(`User with id #${id} not found!`); // ❌ Handle missing user
     return user;
   }
 
   async findOneByEmail(email: string) {
     return await this.userRepository
       .createQueryBuilder('user')
-      .addSelect('user.password')
+      .addSelect('user.password') // 🔐 Securely compare passwords
       .where('user.email = :email', { email })
       .getOne();
   }
@@ -303,9 +330,11 @@ export class UsersService {
 }
 ```
 
-### Register the Users Module
+### 🧩
 
-Create `users.module.ts` in the `src/users` directory:
+ Step 5: Register the Users Module
+
+Finally, let’s register the `UsersModule` in `users.module.ts`:
 
 ```typescript
 import { Module } from '@nestjs/common';
@@ -318,69 +347,57 @@ import Users from 'src/entities/user.entity';
   imports: [TypeOrmModule.forFeature([Users])],
   controllers: [UsersController],
   providers: [UsersService],
+  exports: [UsersService], // 🚀 Export UsersService for use in other modules
 })
 export class UsersModule {}
 ```
 
-## 6. Authentication and Authorization
+---
 
-### Create DTOs
+## 6️⃣ Authentication Setup 🔐
 
-Create `register.dto.ts` in the `src/auth/dto` directory:
+Now, let’s handle authentication with JWT and Passport.
 
-```typescript
-export class RegisterDto {
-  email: string;
-  name: string;
-  lastname: string;
-  age: number;
-  password: string;
-}
-```
+### 🔑 Step 1: Create the Auth Module
 
-Create `login.dto.ts` in the `src/auth/dto` directory:
+Create the `auth.module.ts`:
 
 ```typescript
-export class LoginDto {
-  email: string;
-  password: string;
-}
-```
-
-### Create the Auth Controller
-
-Create `auth.controller.ts` in the `src/auth` directory:
-
-```typescript
-import { Controller, Post, Body } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { RegisterDto } from './dto/register.dto';
-import { LoginDto } from './dto/login.dto';
+import { UsersModule } from 'src/users/users.module';
+import { JwtModule } from '@nestjs/jwt';
+import { PassportModule } from '@nestjs/passport';
+import { JwtStrategy } from './jwt.strategy';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { AuthController } from './auth.controller';
 
-@Controller('auth')
-export class AuthController {
-  constructor(private readonly authService: AuthService) {}
-
-  @Post('register')
-  register(@Body() registerDto: RegisterDto) {
-    return this.authService.register(registerDto);
-  }
-
-  @Post('login')
-  login(@Body() loginDto: LoginDto) {
-    return this.authService.login(loginDto);
-  }
-}
+@Module({
+  imports: [
+    UsersModule,
+    PassportModule,
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        secret: configService.get<string>('JWT_SECRET'),
+        signOptions: { expiresIn: '1d' }, // ⏰ Token expiration time
+      }),
+    }),
+  ],
+  providers: [AuthService, JwtStrategy], // 🛡️ Register JwtStrategy
+  controllers: [AuthController],
+  exports: [AuthService],
+})
+export class AuthModule {}
 ```
 
-### Create the Auth Service
+### 🔑 Step 2: Create the AuthService
 
-Create `auth.service.ts` in the `src/auth` directory:
+Create `auth.service.ts`:
 
 ```typescript
-import { BadRequestException, Injectable } from '@nestjs/common';
-import { RegisterDto } from './dto/register.dto';
-import { LoginDto } from './dto/login.dto';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { UsersService } from 'src/users/users.service';
 import * as bcrypt from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
@@ -392,121 +409,149 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async register(registerDto: RegisterDto) {
-    const user = await this.usersService.findOneByEmail(registerDto.email);
-    if (user) throw new BadRequestException('Username Already exists');
-    registerDto.password = await bcrypt.hash(registerDto.password, 10);
-    return this.usersService.create(registerDto);
+  async validateUser(email: string, pass: string) {
+    const user = await this.usersService.findOneByEmail(email);
+    if (user && (await bcrypt.compare(pass, user.password))) {
+      const { password, ...result } = user;
+      return result; // ✅ User is validated
+    }
+    throw new UnauthorizedException('Incorrect email or password'); // ❌ Handle invalid credentials
   }
 
-  async login(loginDto: LoginDto) {
-    const user = await this.usersService.findOneByEmail(loginDto.email);
-    if (!user) throw new BadRequestException('Incorrect username or password');
-
-    const passwordMatch = await bcrypt.compare(
-      loginDto.password,
-      user.password,
-    );
-
-    if (!passwordMatch)
-      throw new BadRequestException('Incorrect username or password');
-
-    const accessToken = this.jwtService.sign({
-      sub: user.id,
-      email: user.id,
-    });
-
+  async login(user: any) {
+    const payload = { email: user.email, sub: user.id };
     return {
-      accessToken,
+      access_token: this.jwtService.sign(payload), // 🔑 Sign the JWT token
     };
+  }
+
+  async register(createUserDto: any) {
+    createUserDto.password = await bcrypt.hash(createUserDto.password, 10); // 🔒 Hash password before storing
+    const user = await this.usersService.create(createUserDto);
+    return this.login(user.data);
   }
 }
 ```
 
-### Register the Auth Module
+### 🔑 Step 3: Create the JwtStrategy
 
-Create `auth.module.ts` in the `src/auth` directory:
-
-```typescript
-import { Module } from '@nestjs/common';
-import { AuthService } from './auth.service';
-import { AuthController } from './auth.controller';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import Users from 'src/entities/user.entity';
-import { UsersService } from 'src/users/users.service';
-import { JwtModule, JwtService } from '@nestjs/jwt';
-import { JWTstrategy } from './strategies/jwt.strategy';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-
-@Module({
-  imports: [
-    TypeOrmModule.forFeature([Users]),
-    JwtModule.registerAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: async (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET'),
-        signOptions: { expiresIn: '1d' },
-      }),
-    }),
-    ConfigModule,
-  ],
-  controllers: [AuthController],
-  providers: [AuthService, UsersService, JWTstrategy],
-})
-export class AuthModule {}
-```
-
-### Create the JWT Strategy and Guard
-
-Create `jwt.strategy.ts` in the `src/auth/strategies` directory:
+Create `jwt.strategy.ts`:
 
 ```typescript
 import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
-import { Strategy, ExtractJwt } from 'passport-jwt';
+import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
+import { UsersService } from 'src/users/users.service';
 
 @Injectable()
-export class JWTstrategy extends PassportStrategy(Strategy) {
-  constructor(private configService: ConfigService) {
+export class JwtStrategy extends PassportStrategy(Strategy) {
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly userService: UsersService,
+  ) {
     super({
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(), // 🛡️ Extract token from Bearer header
       ignoreExpiration: false,
       secretOrKey: configService.get<string>('JWT_SECRET'),
     });
   }
 
   async validate(payload: any) {
-    return {
-      id: payload.sub,
-      email: payload.email,
-    };
+    const user = await this.userService.findOne(payload.sub);
+    if (!user) {
+      throw new UnauthorizedException('Unauthorized access!'); // ❌ Handle invalid token
+    }
+    return { id: user.id, email: user.email }; // ✅ Return validated user
   }
 }
 ```
 
-Create `jwt-auth.guard.ts` in the `src/auth` directory:
+### 🔑 Step 4: Create the AuthController
+
+Create `auth.controller.ts`:
+
+```typescript
+import {
+  Body,
+  Controller,
+  HttpCode,
+  HttpStatus,
+  Post,
+  Request,
+  UseGuards,
+} from '@nestjs/common';
+import { AuthService } from './auth.service';
+import { LocalAuthGuard } from './local-auth.guard';
+import { CreateUserDto } from 'src/users/dto/create-user.dto';
+
+@Controller('auth')
+export class AuthController {
+  constructor(private readonly authService: AuthService) {}
+
+  @UseGuards(LocalAuthGuard)
+  @Post('login')
+  @HttpCode(HttpStatus.OK) // 🎯 Return HTTP 200 on successful login
+  async login(@Request() req) {
+    return this.authService.login(req.user);
+  }
+
+  @Post('register')
+  async register(@Body() createUserDto: CreateUserDto) {
+    return this.authService.register(createUserDto); // 📝 Register a new user
+  }
+}
+```
+
+### 🔑 Step 5: Create the LocalAuthGuard
+
+Create `local-auth.guard.ts`:
 
 ```typescript
 import { Injectable } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 
 @Injectable()
-export class JwtAuthGuard extends AuthGuard('jwt') {}
+export class LocalAuthGuard extends AuthGuard('jwt') {} // 🛡️ Guard routes with JWT authentication
 ```
 
-## 7. Running the Application
+---
 
-1. **Install dependencies:**
+## 7️⃣ Protect Routes 🛡️
 
-   ```bash
-   npm install
-   ```
+Finally, protect specific routes using guards.
 
-2. **Run the application:**
-   ```bash
-   npm run start:dev
-   ```
+### 🔐 Step 1: Protect Routes in Users Controller
 
-The application should now be running, and you can use the provided endpoints for user management, authentication, and authorization.
+Update the `users.controller.ts` to protect routes:
+
+```typescript
+import { UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard'; // 🛡️ Import JWT Guard
+
+@Controller('users')
+@UseGuards(JwtAuthGuard) // 🛡️ Protect all routes in this controller
+export class UsersController {
+  // Existing methods...
+}
+```
+
+### 🔐 Step 2: Create the JwtAuthGuard
+
+Create `jwt-auth.guard.ts`:
+
+```typescript
+import { Injectable } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
+
+@Injectable()
+export class JwtAuthGuard extends AuthGuard('jwt') {} // 🛡️ Guard with JWT Strategy
+```
+
+---
+
+## 🏁 Wrapping Up
+
+Congrats on setting up authentication and authorization in your NestJS project with PostgreSQL! 🎉 Now your app has a strong foundation for secure operations. Keep building, and feel free to expand upon this setup as your app grows.
+
+**Happy coding!** ✨
